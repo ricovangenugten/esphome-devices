@@ -1,0 +1,128 @@
+esphome:
+  name: weather-mqtt-01
+  platform: ESP8266
+  board: d1_mini
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  fast_connect: true
+  power_save_mode: high
+  output_power: '10dB'
+  manual_ip:
+    static_ip: 192.168.1.129
+    gateway: 192.168.1.1
+    subnet: 255.255.255.0
+
+mqtt:
+  broker: !secret mqtt_host
+  username: !secret mqtt_user
+  password: !secret mqtt_password
+  discovery: False
+  reboot_timeout: 60s
+  birth_message:
+    topic: "weather_01/deep_sleep_status"
+    payload: "awake"
+    retain: True
+  on_message:
+
+    - topic: weather_01/deep_sleep_mode
+      payload: 'prevent'
+      then:
+        - deep_sleep.prevent: deep_sleep_01
+        - mqtt.publish:
+           topic: weather_01/deep_sleep_mode
+           payload: 'normal'
+           retain: True
+
+    - topic: weather_01/deep_sleep_mode
+      payload: 'now'
+      then:
+        - deep_sleep.enter: deep_sleep_01
+        - mqtt.publish:
+            topic: weather_01/deep_sleep_mode
+            payload: 'normal'
+            retain: True
+
+    # set topic to any other message like 'normal' for normal operation  
+
+#api:
+
+ota:
+
+deep_sleep:
+  run_duration: 60s # max run duration, will sleep earlier if sensor values are sent
+  sleep_duration: 30min
+  id: deep_sleep_01
+
+i2c:
+  sda: GPIO04
+  scl: GPIO05
+  scan: true
+  id: bus_a
+
+sensor:
+  - platform: adc
+    pin: A0
+    name: "Battery voltage"
+    id: "battery_voltage"
+    update_interval: 1s
+    accuracy_decimals: 3
+    filters:
+      - multiply: 4.190
+
+  - platform: bme280
+    temperature:
+      name: "BME280 Temperature"
+      id: bme280_temperature
+    pressure:
+      name: "BME280 Pressure"
+      id: bme280_pressure
+    humidity:
+      name: "BME280 Relative Humidity"
+      id: bme280_humidity
+      on_value:
+        then:
+         - if:
+             condition:
+               mqtt.connected:
+             then:
+               - lambda: 'id(absolute_humidity).update();'
+               - lambda: 'id(dew_point).update();'
+               - mqtt.publish:
+                   topic: weather_01/deep_sleep_status
+                   payload: 'sleeping'
+                   retain: True
+               - delay: 100ms
+               - deep_sleep.enter: deep_sleep_01
+    address: 0x76
+    update_interval: 1s
+
+  - platform: template
+    name: "Absolute Humidity"
+    id: "absolute_humidity"
+    lambda: |-
+      if (isnan(id(bme280_temperature).state) || isnan(id(bme280_humidity).state))
+        return {};
+      const float mw = 18.01534;    // molar mass of water g/mol
+      const float r = 8.31447215;   // Universal gas constant J/mol/K
+      return (6.112 * powf(2.718281828, (17.67 * id(bme280_temperature).state) /
+        (id(bme280_temperature).state + 243.5)) * id(bme280_humidity).state * mw) /
+        ((273.15 + id(bme280_temperature).state) * r); // in grams/m^3
+    accuracy_decimals: 2
+    unit_of_measurement: 'g/m³'
+    icon: 'mdi:water'
+    update_interval: 60s
+
+  - platform: template
+    name: "Dew Point"
+    id: "dew_point"
+    lambda: |-
+      if (isnan(id(bme280_temperature).state) || isnan(id(bme280_humidity).state))
+        return {};
+      return (243.5*(log(id(bme280_humidity).state/100)+((17.67*id(bme280_temperature).state)/
+        (243.5+id(bme280_temperature).state)))/(17.67-log(id(bme280_humidity).state/100)-
+        ((17.67*id(bme280_temperature).state)/(243.5+id(bme280_temperature).state))));
+    unit_of_measurement: °C
+    icon: 'mdi:thermometer-alert'
+    update_interval: 60s

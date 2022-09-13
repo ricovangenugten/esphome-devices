@@ -1,0 +1,32 @@
+esphome:
+  name: tuya-ms105-01
+  platform: ESP8266
+  board: esp8285
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+logger:
+  baud_rate: 0
+
+ota:
+
+uart:
+  rx_pin: GPIO3
+  tx_pin: GPIO1
+  baud_rate: 9600
+
+tuya:
+
+light:
+  - platform: "tuya"
+    name: "Dimmer"
+    switch_datapoint: 1
+    dimmer_datapoint: 2
+# actually the lowest value seems to be 257, but setting that in
+# esphome doesn't scale the brightness bar, it just caps the value
+    min_value: 0
+    max_value: 1003
