@@ -1,5 +1,5 @@
 esphome:
-  name: sonoff-rfr3-01
+  name: sonoff_rfr3_01
   platform: ESP8266
   board: esp8285
 

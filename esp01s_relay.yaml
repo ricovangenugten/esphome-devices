@@ -1,5 +1,5 @@
 esphome:
-  name: esp01s-relay-01
+  name: esp01s_relay_01
   platform: ESP8266
   board: esp01_1m
 

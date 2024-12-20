@@ -1,5 +1,5 @@
 esphome:
-  name: weather-mqtt-01
+  name: weather_mqtt_01
   platform: ESP8266
   board: d1_mini
 

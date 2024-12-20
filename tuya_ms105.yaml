@@ -1,5 +1,5 @@
 esphome:
-  name: tuya-ms105-01
+  name: tuya_ms105_01
   platform: ESP8266
   board: esp8285
 

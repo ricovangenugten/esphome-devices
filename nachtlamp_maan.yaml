@@ -1,0 +1,23 @@
+esphome:
+  name: nachtlamp-maan
+  platform: ESP8266
+  board: d1
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+api:
+
+ota:
+
+output:
+  - platform: esp8266_pwm
+    id: channel_1
+    pin:
+      number: GPIO2
+
+light:
+  - platform: monochromatic
+    name: "PWM Channel 1"
+    output: channel_1

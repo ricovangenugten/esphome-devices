@@ -1,5 +1,5 @@
 esphome:
-  name: weather-01
+  name: weather_01
   platform: ESP8266
   board: d1_mini
 

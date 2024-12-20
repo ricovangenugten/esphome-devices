@@ -1,5 +1,5 @@
 esphome:
-  name: sonoff-s26-03
+  name: sonoff_s26_01
   platform: ESP8266
   board: esp8285
 

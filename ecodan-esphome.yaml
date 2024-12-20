@@ -1,0 +1,90 @@
+substitutions:
+  name: ecodan-heatpump
+  friendlyName: Ecodan heatpump
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendlyName}
+
+ota:
+  - platform: esphome
+#  password: !secret heatpump_ota_password
+
+api:
+  reboot_timeout: 0s
+#  encryption:
+#    key: !secret heatpump_encryption_key
+
+# external_components:
+# - source:
+#     type: local
+#     path: components
+#   components: [ ecodan ]
+
+# packages:
+#  base: !include confs/base.yaml # 
+#  esp32: !include confs/esp32s3-heishamon.yaml # esp32.yaml for regular board
+#  zone1: !include confs/zone1.yaml
+# # disable if you don't want to use zone 2
+# # zone2: !include confs/zone2.yaml
+# # change language labels to -en for English or -nl for Dutch
+# # substitutions: !include confs/ecodan-labels-nl.yaml
+#  substitutions: !include confs/ecodan-labels-en.yaml
+#  svc: !include confs/server-control.yaml
+#  dbg: !include confs/debug.yaml
+#  wifi: !include confs/wifi.yaml
+
+external_components:
+  - source: github://gekkekoe/esphome-ecodan-hp@main
+    components: [ ecodan ]
+    refresh: always
+
+packages:
+  remote_package:
+    url: https://github.com/gekkekoe/esphome-ecodan-hp/
+    ref: main
+    refresh: always
+    files: [ 
+            confs/base.yaml,        # required
+            confs/esp32lite.yaml,     # confs/esp32s3.yaml, for s3 board
+            confs/zone1.yaml,
+            ## enable if you want to use zone 2
+            #confs/zone2.yaml,
+            ## enable label language file
+            confs/ecodan-labels-en.yaml,
+            #confs/ecodan-labels-nl.yaml,
+            #confs/ecodan-labels-it.yaml,
+            #confs/ecodan-labels-fr.yaml,
+            confs/server-control.yaml,
+            #confs/debug.yaml,
+            ## enable this to monitor WiFi status with ESP in-built LED
+            #confs/status_led.yaml,
+            ## enable this to monitor status with custom led colors, uses https://github.com/esphome/esphome/pull/5814
+            #confs/status_led_rgb.yaml,
+            confs/wifi.yaml
+           ]
+
+# enable logger
+logger:
+  baud_rate: 0
+  logs:
+    esp32.preferences: DEBUG
+    sensor: DEBUG
+    text_sensor: DEBUG
+    binary_sensor: DEBUG
+    switch: DEBUG
+    button: DEBUG
+    number: DEBUG
+    climate: DEBUG
+    component: ERROR
+    ecodan.component: ERROR
+
+# Enable Web server.
+web_server:
+  port: 80
+  #ota: true
+
+ecodan:
+  id: ecodan_instance
+  uart_id: uart_ecodan
+

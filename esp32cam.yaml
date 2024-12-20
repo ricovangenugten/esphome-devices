@@ -1,5 +1,5 @@
 esphome:
-  name: esp32cam-01
+  name: esp32cam_02
   platform: ESP32
   board: esp32cam
 
